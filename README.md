@@ -3,6 +3,8 @@
 
 Easy Align addon allows you to align mesh objects origins and align mesh objects to each others easily, it works in both Edit mode and Object mode.<br>
 
+To download this addon in Blender, open Blender, go to File > User Preferences, under Add-ons tab, choose Install from file, navigate to the addon file location and install. Check the checkbox in the addon's name to activate, if you want this addon to be available every time you start Blender, don't forget to Save User Settings.<br>
+
 After installing Easy Align addon, the panel will be available in 3D View window, Properties shelf, if Properties shelf is hidden, press <kbd>N</kbd> while hovering over 3D View window.
 
 <H3>Easy Align is devided into 4 distinctive functions:</H3>
