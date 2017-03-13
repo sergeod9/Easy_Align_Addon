@@ -43,10 +43,10 @@ description = "Set the Axis",
 default = '2'
 )
 
-snap_items = [('0','Selection to Grid',''),
-            ('1','Selection to Cursor',''),
-            ('2','Selection to Cursor (offset)',''),
-            ('3','Selection to Active','')
+snap_items = [('0','To Grid',''),
+            ('1','To Cursor',''),
+            ('2','To Cursor (offset)',''),
+            ('3','To Active','')
             ]
             
 snap_enum = EnumProperty \
