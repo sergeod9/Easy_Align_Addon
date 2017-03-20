@@ -246,8 +246,8 @@ class Easy_A_Object_OP(bpy.types.Operator):
                     bpy.ops.mesh.select_all(action='DESELECT')
                     bpy.ops.object.mode_set(mode='OBJECT')    
                     get_back = vert_sel[0] # Assign the first selected vertex in order to reselect later if deselected 
-                    if len(vert_sel) % 2 == 0 and len (vert_sel )>1: # Deselect a vertex if selected vertices in active object are even number and more than 1 vertex   
-                        del vert_sel[0]
+                    #if len(vert_sel) % 2 == 0 and len (vert_sel )>1: # Deselect a vertex if selected vertices in active object are even number and more than 1 vertex   
+                        #del vert_sel[0]
 
                     for v in act_vert:
                         for k in range(len(vert_sel)):
