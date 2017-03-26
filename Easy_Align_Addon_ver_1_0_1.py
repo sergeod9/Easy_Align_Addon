@@ -236,41 +236,59 @@ class Easy_A_Object_OP(bpy.types.Operator):
 
                     act_vert = act.data.vertices
                     vert_sel=[]
+                    face_sel=[]
 
                     for v in act_vert:
                         if v.select:
                            vert_sel.append(v) 
+                    print (len(vert_sel))
 
-                    bpy.ops.object.mode_set(mode = 'EDIT') 
-                    bpy.ops.mesh.select_mode(type='VERT')
-                    bpy.ops.mesh.select_all(action='DESELECT')
-                    bpy.ops.object.mode_set(mode='OBJECT')    
-                    get_back = vert_sel[0] # Assign the first selected vertex in order to reselect later if deselected 
-                    #if len(vert_sel) % 2 == 0 and len (vert_sel )>1: # Deselect a vertex if selected vertices in active object are even number and more than 1 vertex   
-                        #del vert_sel[0]
-
-                    for v in act_vert:
-                        for k in range(len(vert_sel)):
-                            if v.co == vert_sel[k].co:
-                                v.select = True
+                    if len(vert_sel) > 2:
+                        print('checked')
+                        O.object.mode_set(mode='EDIT')
+                        O.mesh.select_mode(type='FACE')
+                        O.mesh.select_mode(type='VERT')
+                        O.object.mode_set(mode='OBJECT')
+                        print('checked 2')
+                        for f in act_vert:
+                            if f.select:
+                                face_sel.append(f)
+                        print(len(face_sel))
+                        
+                        if len(face_sel) < 1:
+                            print('len (face_sel) less than 1')
+                            bpy.ops.object.mode_set(mode = 'EDIT') 
+                            bpy.ops.mesh.select_mode(type='VERT')
+                            bpy.ops.mesh.select_all(action='DESELECT')
+                            bpy.ops.object.mode_set(mode='OBJECT') 
+                            for v in act_vert:
+                                for k in range(len(vert_sel)):
+                                    if v.co == vert_sel[k].co:
+                                        v.select = True
+                                        print('selected 2')
+                            O.object.mode_set(mode='EDIT')
+                            O.mesh.edge_face_add()
+                            O.object.mode_set(mode='OBJECT')
+                            print('face created')
+                            
     
                     O.object.mode_set(mode = 'EDIT')
                     bpy.ops.transform.create_orientation(name = "EA_CTrans", use = False) # Create a CTO from selected vertices in active object
+                    print('CTO created')
                     O.object.mode_set(mode = 'OBJECT')
-                    
-                    vert_sel.append(get_back)
-                    
-                    bpy.ops.object.mode_set(mode = 'EDIT') 
-                    bpy.ops.mesh.select_mode(type='VERT')
-                    bpy.ops.mesh.select_all(action='DESELECT')
-                    bpy.ops.object.mode_set(mode='OBJECT') 
-                    
-                    for v in act_vert:
-                         for k in range(len(vert_sel)):
-                            if v.co == vert_sel[k].co:
-                                v.select = True
-
-                    O.object.mode_set(mode = 'OBJECT')
+                    if len(face_sel)<1:
+                        O.object.mode_set(mode = 'EDIT')
+                        O.mesh.delete(type='FACE') 
+                        O.mesh.select_mode(type='VERT')
+                        O.mesh.select_all(action='DESELECT')
+                        O.object.mode_set(mode='OBJECT') 
+                        for v in act_vert:
+                            for k in range(len(vert_sel)):
+                                if v.co == vert_sel[k].co:
+                                    v.select = True
+                                    print('selected')
+                    vert_sel=[]
+                    face_sel=[]
                     act.select = False
                 except:
                     print("Operation skipped")
@@ -278,29 +296,28 @@ class Easy_A_Object_OP(bpy.types.Operator):
             for i in sel:
                 i.select = True
                 if rot_prop:
-                    try:
+                    O.object.rotation_clear(clear_delta=True)
+                    if 'EA_CTrans' in bpy.context.scene.orientations.keys():
+                        Easy_A_OP.execute(self,context)
                         ''' Set the selected object's transform to CTO'''
                         custom_matrix = bpy.context.scene.orientations['EA_CTrans'].matrix
                         custom_matrix_4 = custom_matrix.copy() #Copy the matrix to resize it from 3x3 matrix to 4x4 matrix
                         custom_matrix_4.resize_4x4()
                         i.matrix_world = custom_matrix_4 #Set the matrix of the active object to match the resized matrix
                         O.object.mode_set(mode='OBJECT')
-                        Easy_A_OP.execute(self,context)
-                        
-                        if 'EA_CTrans' in bpy.context.scene.orientations.keys():
-                            
-                            ''' Override context to delete CTO '''
-                            name = 'EA_CTrans'
-                            views = [area.spaces.active for area in bpy.context.screen.areas if area.type == 'VIEW_3D']
-                            if views: #Assign the orientation in the view so that it is active and can be removed
-                                views[0].transform_orientation = name
-                            areas = [area for area in bpy.context.window.screen.areas if area.type == 'VIEW_3D']
-                            if areas: #Give the good override context
-                                override = bpy.context.copy()
-                                override['area'] = areas[0]
-                                bpy.ops.transform.delete_orientation( override )
-                    except:
-                        print('Could not generate Custom Transform Orientation for Active Object')
+
+                        ''' Override context to delete CTO '''
+                        name = 'EA_CTrans'
+                        views = [area.spaces.active for area in bpy.context.screen.areas if area.type == 'VIEW_3D']
+                        if views: #Assign the orientation in the view so that it is active and can be removed
+                            views[0].transform_orientation = name
+                        areas = [area for area in bpy.context.window.screen.areas if area.type == 'VIEW_3D']
+                        if areas: #Give the good override context
+                            override = bpy.context.copy()
+                            override['area'] = areas[0]
+                            bpy.ops.transform.delete_orientation( override )
+                    else:
+                        print('Could not Generate CTO')
                 O.view3d.snap_selected_to_active()
             area.type = areaAnchor
 
