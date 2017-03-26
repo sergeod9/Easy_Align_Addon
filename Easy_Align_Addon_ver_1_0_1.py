@@ -241,22 +241,17 @@ class Easy_A_Object_OP(bpy.types.Operator):
                     for v in act_vert:
                         if v.select:
                            vert_sel.append(v) 
-                    print (len(vert_sel))
 
                     if len(vert_sel) > 2:
-                        print('checked')
                         O.object.mode_set(mode='EDIT')
                         O.mesh.select_mode(type='FACE')
                         O.mesh.select_mode(type='VERT')
                         O.object.mode_set(mode='OBJECT')
-                        print('checked 2')
                         for f in act_vert:
                             if f.select:
                                 face_sel.append(f)
-                        print(len(face_sel))
                         
                         if len(face_sel) < 1:
-                            print('len (face_sel) less than 1')
                             bpy.ops.object.mode_set(mode = 'EDIT') 
                             bpy.ops.mesh.select_mode(type='VERT')
                             bpy.ops.mesh.select_all(action='DESELECT')
@@ -265,16 +260,13 @@ class Easy_A_Object_OP(bpy.types.Operator):
                                 for k in range(len(vert_sel)):
                                     if v.co == vert_sel[k].co:
                                         v.select = True
-                                        print('selected 2')
                             O.object.mode_set(mode='EDIT')
                             O.mesh.edge_face_add()
                             O.object.mode_set(mode='OBJECT')
-                            print('face created')
                             
     
                     O.object.mode_set(mode = 'EDIT')
                     bpy.ops.transform.create_orientation(name = "EA_CTrans", use = False) # Create a CTO from selected vertices in active object
-                    print('CTO created')
                     O.object.mode_set(mode = 'OBJECT')
                     if len(face_sel)<1:
                         O.object.mode_set(mode = 'EDIT')
@@ -286,7 +278,6 @@ class Easy_A_Object_OP(bpy.types.Operator):
                             for k in range(len(vert_sel)):
                                 if v.co == vert_sel[k].co:
                                     v.select = True
-                                    print('selected')
                     vert_sel=[]
                     face_sel=[]
                     act.select = False
