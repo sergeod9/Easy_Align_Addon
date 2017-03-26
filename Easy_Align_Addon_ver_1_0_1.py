@@ -19,7 +19,7 @@
 bl_info = {
     "name" : "Easy Align",
     "author":"Georges Dahdouh",
-    "version":(1,0,0),
+    "version":(1,0,1),
     "blender":(2,7,8),
     "location":"View 3D > Property Shelf",
     "description":"Align mesh objects origins and mesh to selected axis",
@@ -33,7 +33,7 @@ from bpy.props import *
 Axis = [('0','X',""),
         ('1','Y',""),
         ('2','Z',"")
-        ]
+        ] # Items for enumerated list
 
 ax_prop = EnumProperty \
 (
@@ -41,52 +41,59 @@ items = Axis,
 name ="",
 description = "Set the Axis",
 default = '2'
-)
+) # Enumerated list to choose axis
 
 snap_items = [('0','To Grid',''),
             ('1','To Cursor',''),
             ('2','To Cursor (offset)',''),
             ('3','To Active','')
-            ]
+            ] # Items for enumerated list
             
 snap_enum = EnumProperty \
 (
 items = snap_items,
 name ="",
 description = "Snap to"
-)
+) # Enumerated property to choose a snapping method
             
 invert_ax = BoolProperty \
 (name = "Maximum",
 description = "Set to Maximum",
 default = False
-)
+) # Boolean checkbox for Maximum
 
 invert_active_ax = BoolProperty \
 (name = "Active Maximum",
 description = "Set active to Maximum for Exclusively Align Objects",
 default = True
-)
+) # Boolean property for Active Object Maximum
 
 median_prop = BoolProperty \
 (name = "Median",
 description = "Align origin using median vertices coordniates",
 default = False
-)
+) # Boolean property for Median
 
 local_prop = BoolProperty \
 (name = "Local",
 description = "Use local coordinates, default is global",
 default = False
-)
+) # Boolean property for Local
     
+rot_prop = BoolProperty \
+(name = "Rotate",
+description = "Rotate selected",
+default = False
+) # Boolean property for Rotate
+
 flex_prop = FloatProperty \
 (name = "Flexibility",
 description = "The higher the value, the more flexible alignment is in Blender units",
 default = 0.01,
 step = 1,
 min = 0.0
-)
+) # Float property for Flexibility
+
 
 class Easy_A_OP(bpy.types.Operator):
     """Set origin to selected axi"""
@@ -95,35 +102,34 @@ class Easy_A_OP(bpy.types.Operator):
     bl_options = {'REGISTER','UNDO'}
 
     def execute(self,context):
-        
-                            
+                                  
         lt_selected =[] 
         vlist = []       
         C = bpy.context 
         D = bpy.data
         O = bpy.ops
         area = context.area
-        current_m = C.object.mode
-        areaAnchor = area.type
+        areaAnchor = area.type # Assign the current area type to a variable
         S = C.selected_objects
         active_ob = C.active_object
-        ax_prop = int(context.object.set_enum_prop)
-        invert_ax = context.object.set_maximum
-        median_prop = context.object.set_median
-        flex_prop = context.object.flexibility
-        local_prop = context.object.set_local
-        original_cursor = list(C.scene.cursor_location)
+        ax_prop = int(context.object.set_enum_prop) # Define the axis selection enumerated property within function
+        invert_ax = context.object.set_maximum # Define the Maximum Boolean property within function
+        median_prop = context.object.set_median # Define the Median Boolean property within function
+        flex_prop = context.object.flexibility # Define the Flexibility Boolean property within function
+        local_prop = context.object.set_local # Define the Local Boolean property within function
+        rot_prop = context.object.set_rotation # Define the Rotate Boolean property within function
+        original_cursor = list(C.scene.cursor_location) # Assign the current location of 3D Cursor to a variable
 
         if bpy.context.object.type == 'MESH':
-            current_m = context.object.mode
+            current_m = context.object.mode # Assign the current mode of the object to a variable
             if  current_m == 'EDIT':
-                context.object.update_from_editmode()
+                context.object.update_from_editmode() #Refresh to avoid error
                 bpy.ops.object.mode_set(mode = 'OBJECT')
 
             
             for i in S:
                 if i.type == "MESH":
-                    lt_selected.append(i)
+                    lt_selected.append(i) # Assign the selected mesh objects to a list
                     
             for act_loop in lt_selected:
                 vertGlob=[]
@@ -194,6 +200,7 @@ class Easy_A_Object_OP(bpy.types.Operator):
         sel = bpy.context.selected_objects
         act = bpy.context.active_object
         invert_ax = context.object.set_maximum
+        rot_prop = context.object.set_rotation
         area = context.area
         areaAnchor = area.type
         current_m = C.object.mode
@@ -222,9 +229,89 @@ class Easy_A_Object_OP(bpy.types.Operator):
                 
             O.object.select_all(action = "DESELECT")
             
+            if rot_prop:
+                try:
+                    act.select = True
+                    act = bpy.context.active_object
+
+                    act_vert = act.data.vertices
+                    vert_sel=[]
+                    face_sel=[]
+
+                    for v in act_vert:
+                        if v.select:
+                           vert_sel.append(v) 
+
+                    if len(vert_sel) > 2:
+                        O.object.mode_set(mode='EDIT')
+                        O.mesh.select_mode(type='FACE')
+                        O.mesh.select_mode(type='VERT')
+                        O.object.mode_set(mode='OBJECT')
+                        for f in act_vert:
+                            if f.select:
+                                face_sel.append(f)
+                        
+                        if len(face_sel) < 1:
+                            bpy.ops.object.mode_set(mode = 'EDIT') 
+                            bpy.ops.mesh.select_mode(type='VERT')
+                            bpy.ops.mesh.select_all(action='DESELECT')
+                            bpy.ops.object.mode_set(mode='OBJECT') 
+                            for v in act_vert:
+                                for k in range(len(vert_sel)):
+                                    if v.co == vert_sel[k].co:
+                                        v.select = True
+                            O.object.mode_set(mode='EDIT')
+                            O.mesh.edge_face_add()
+                            O.object.mode_set(mode='OBJECT')
+                            
+    
+                    O.object.mode_set(mode = 'EDIT')
+                    bpy.ops.transform.create_orientation(name = "EA_CTrans", use = False) # Create a CTO from selected vertices in active object
+                    O.object.mode_set(mode = 'OBJECT')
+                    if len(face_sel)<1:
+                        O.object.mode_set(mode = 'EDIT')
+                        O.mesh.delete(type='FACE') 
+                        O.mesh.select_mode(type='VERT')
+                        O.mesh.select_all(action='DESELECT')
+                        O.object.mode_set(mode='OBJECT') 
+                        for v in act_vert:
+                            for k in range(len(vert_sel)):
+                                if v.co == vert_sel[k].co:
+                                    v.select = True
+                    vert_sel=[]
+                    face_sel=[]
+                    act.select = False
+                except:
+                    print("Operation skipped")
+            
             for i in sel:
                 i.select = True
+                if rot_prop:
+                    O.object.rotation_clear(clear_delta=True)
+                    if 'EA_CTrans' in bpy.context.scene.orientations.keys():
+                        Easy_A_OP.execute(self,context)
+                        ''' Set the selected object's transform to CTO'''
+                        custom_matrix = bpy.context.scene.orientations['EA_CTrans'].matrix
+                        custom_matrix_4 = custom_matrix.copy() #Copy the matrix to resize it from 3x3 matrix to 4x4 matrix
+                        custom_matrix_4.resize_4x4()
+                        i.matrix_world = custom_matrix_4 #Set the matrix of the active object to match the resized matrix
+                        O.object.mode_set(mode='OBJECT')
+
+                        ''' Override context to delete CTO '''
+                        name = 'EA_CTrans'
+                        views = [area.spaces.active for area in bpy.context.screen.areas if area.type == 'VIEW_3D']
+                        if views: #Assign the orientation in the view so that it is active and can be removed
+                            views[0].transform_orientation = name
+                        areas = [area for area in bpy.context.window.screen.areas if area.type == 'VIEW_3D']
+                        if areas: #Give the good override context
+                            override = bpy.context.copy()
+                            override['area'] = areas[0]
+                            bpy.ops.transform.delete_orientation( override )
+                    else:
+                        print('Could not Generate CTO')
                 O.view3d.snap_selected_to_active()
+            area.type = areaAnchor
+
             act.select = True
             O.object.mode_set(mode = current_m)
             area.type = areaAnchor
@@ -363,6 +450,7 @@ class Easy_A_panel(bpy.types.Panel):
         col.prop(context.object, "set_maximum")
         col.prop(context.object, "set_median")
         col.prop(context.object, "set_local")
+        col.prop(context.object, "set_rotation")
         col.prop(context.object, "set_enum_prop")
         col.prop(context.object,"flexibility")
         col = box.row().column()
@@ -393,6 +481,7 @@ def register():
     bpy.types.Object.set_active_maximum = invert_active_ax
     bpy.types.Object.set_median = median_prop
     bpy.types.Object.set_local = local_prop
+    bpy.types.Object.set_rotation = rot_prop
     bpy.types.Object.snap_to = snap_enum
     bpy.types.Object.flexibility = flex_prop
 
@@ -406,6 +495,7 @@ def unregister():
     del bpy.types.Object.set_maximum
     del bpy.types.Object.set_median
     del bpy.types.Object.set_local
+    del bpy.types.Object.set_rotation
     del bpy.types.Object.snap_to
     del bpy.types.Object.flexibility
     del bpy.types.Object.set_active_maximum 
