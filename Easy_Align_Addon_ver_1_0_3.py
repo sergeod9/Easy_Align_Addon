@@ -97,7 +97,7 @@ min = 0.0
 force_ax = 0
 
 class Easy_A_OP(bpy.types.Operator):
-    """Set origin to selected axi"""
+    """Set origin to selected axis"""
     bl_idname = "object.easy_a"
     bl_label = "Easy Align"
     bl_options = {'REGISTER','UNDO'}
