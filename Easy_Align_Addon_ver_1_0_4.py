@@ -40,7 +40,8 @@ ax_prop = EnumProperty \
 items = Axis,
 name ="",
 description = "Set the Axis",
-default = '2'
+default = None,
+options = {'ANIMATABLE'}
 ) # Enumerated list to choose axis
 
 snap_items = [('0','To Grid',''),
