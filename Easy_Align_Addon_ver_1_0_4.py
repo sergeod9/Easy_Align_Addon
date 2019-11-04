@@ -19,7 +19,7 @@
 bl_info = {
     "name" : "Easy Align",
     "author":"Georges Dahdouh",
-    "version":(1,0,3),
+    "version":(1,0,4),
     "blender":(2,80,0),
     "location":"View 3D > Properties",
     "description":"Align mesh objects origins and mesh to selected axis",
