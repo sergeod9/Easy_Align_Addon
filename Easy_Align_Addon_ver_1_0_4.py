@@ -40,7 +40,7 @@ ax_prop = EnumProperty \
 items = Axis,
 name ="",
 description = "Set the Axis",
-default = None,
+default = 2,
 options = {'ANIMATABLE'}
 ) # Enumerated list to choose axis
 
